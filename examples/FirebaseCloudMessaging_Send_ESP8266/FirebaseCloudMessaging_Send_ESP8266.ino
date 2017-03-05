@@ -28,6 +28,8 @@
 #define SERVER_KEY "key_from_dashboard"
 #define CLIENT_REGISTRATION_ID "key_from_client_after_registration"
 
+const char* googleApiHash = "22374D5843F4A12412712B747AFC36FC24A0F09D"; // Key valid till 17/5/2017
+
 void setup() {
   Serial.begin(9600);
 
@@ -45,7 +47,7 @@ void setup() {
   FirebaseCloudMessaging fcm(SERVER_KEY);
   FirebaseCloudMessage message =
   	FirebaseCloudMessage::SimpleNotification("Hello World!", "What's happening?");
-  FirebaseError error = fcm.SendMessageToUser(CLIENT_REGISTRATION_ID, message);
+  FirebaseError error = fcm.SendMessageToUser(CLIENT_REGISTRATION_ID, message, googleApiHash);
   if (error) {
     Serial.print("Error:");
     Serial.print(error.code());
