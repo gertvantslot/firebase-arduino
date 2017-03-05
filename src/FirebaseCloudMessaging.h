@@ -24,7 +24,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
-#include "FirebaseHttpClient.h"
+#include "ESP8266HTTPClient.h"
 #include "FirebaseError.h"
 #define ARDUINOJSON_USE_ARDUINO_STRING 1
 #include "third-party/arduino-json-5.6.7/include/ArduinoJson.h"
@@ -67,18 +67,21 @@ class FirebaseCloudMessaging {
  public:
   FirebaseCloudMessaging(const std::string& server_key);
   const FirebaseError SendMessageToUser(const std::string& registration_id,
-                                        const FirebaseCloudMessage& message);
+                                        const FirebaseCloudMessage& message,
+										const char* tlsFingerprint);
   const FirebaseError SendMessageToUsers(const std::vector<std::string>& registration_ids,
-                                         const FirebaseCloudMessage& message);
+                                         const FirebaseCloudMessage& message,
+										 const char* tlsFingerprint);
 
   // TODO: The protocol supports sending a message to multiple topics but it is
   // not implemented here.
   const FirebaseError SendMessageToTopic(const std::string& topic,
-                                         const FirebaseCloudMessage& message);
+                                         const FirebaseCloudMessage& message,
+										 const char* tlsFingerprint);
 
  private:
   // Make the actual call to the backend.
-  const FirebaseError SendPayload(const char* payload);
+  const FirebaseError SendPayload(const char* payload, const char* tlsFingerprint);
 
   const void AddToJson(const FirebaseCloudMessage& message, JsonObject& json) const;
 

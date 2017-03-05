@@ -15,7 +15,8 @@ FirebaseCloudMessaging::FirebaseCloudMessaging(const std::string& server_key) {
 
 const FirebaseError FirebaseCloudMessaging::SendMessageToUser(
     const std::string& registration_id,
-    const FirebaseCloudMessage& message) {
+    const FirebaseCloudMessage& message,
+	const char* tlsFingerprint) {
   DynamicJsonBuffer buffer;
   JsonObject& root = buffer.createObject();
   root["to"] = registration_id.c_str();
@@ -24,12 +25,13 @@ const FirebaseError FirebaseCloudMessaging::SendMessageToUser(
 
   char payload[root.measureLength() + 1];
   root.printTo(payload, sizeof(payload));
-  return SendPayload(payload);
+  return SendPayload(payload, tlsFingerprint);
 }
 
 const FirebaseError FirebaseCloudMessaging::SendMessageToUsers(
     const std::vector<std::string>& registration_ids,
-    const FirebaseCloudMessage& message) {
+    const FirebaseCloudMessage& message,
+	const char* tlsFingerprint) {
   DynamicJsonBuffer buffer;
   JsonObject& root = buffer.createObject();
   JsonArray& ids = root.createNestedArray("registration_ids");
@@ -41,12 +43,13 @@ const FirebaseError FirebaseCloudMessaging::SendMessageToUsers(
 
   char payload[root.measureLength() + 1];
   root.printTo(payload, sizeof(payload));
-  return SendPayload(payload);
+  return SendPayload(payload, tlsFingerprint);
 }
 
 
 const FirebaseError FirebaseCloudMessaging::SendMessageToTopic(
-    const std::string& topic, const FirebaseCloudMessage& message) {
+    const std::string& topic, const FirebaseCloudMessage& message,
+	const char* tlsFingerprint) {
   std::string to("/topics/");
   to += topic;
 
@@ -58,19 +61,21 @@ const FirebaseError FirebaseCloudMessaging::SendMessageToTopic(
 
   char payload[root.measureLength() + 1];
   root.printTo(payload, sizeof(payload));
-  return SendPayload(payload);
+  return SendPayload(payload, tlsFingerprint);
 }
 
 const FirebaseError FirebaseCloudMessaging::SendPayload(
-    const char* payload) {
-  std::unique_ptr<FirebaseHttpClient> client(FirebaseHttpClient::create());
-  client->begin("http://fcm.googleapis.com/fcm/send");
-  client->addHeader("Authorization", auth_header_.c_str());
-  client->addHeader("Content-Type", "application/json");
+    const char* payload, const char* tlsFingerprint) {
 
-  int status = client->sendRequest("POST", payload);
+  HTTPClient client;
+ 
+  client.begin("https://fcm.googleapis.com/fcm/send", tlsFingerprint);
+  client.addHeader("Authorization", auth_header_.c_str());
+  client.addHeader("Content-Type", "application/json");
+
+  int status = client.sendRequest("POST", payload);
   if (status != 200) {
-    return FirebaseError(status, client->errorToString(status));
+    return FirebaseError(status, client.errorToString(status).c_str());
   } else {
     return FirebaseError::OK();
   }
